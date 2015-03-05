@@ -3,12 +3,13 @@
 #04/03/2015.
 
 # configuration
-number_of_decks = 2
+NUMBER_OF_DECKS = 2
 # variables
 playing_deck = []
 player_cards = []
 computer_cards = []
 end_game = false
+SUITS = %w(spades hearts clubs diamonds)
 
 def ask_for_name
   puts "Ready to play Blackjack!!"
@@ -17,8 +18,7 @@ def ask_for_name
   name = gets.chomp.capitalize
 end
 # initialization methods
-def initialize_deck
-  suits = %w(spades hearts clubs diamonds)
+def initialize_deck(suits)
   card_value = []
   suits.each do |suit|
     card_value = card_value + get_suit(suit)
@@ -49,9 +49,10 @@ def reset_player_and_computer_decks(player_cards, computer_cards)
 end
 # playing methods
 def give_starting_cards(player_cards, computer_cards, playing_deck)
-  2.times{player_cards << playing_deck.shift}
-  2.times{computer_cards << playing_deck.shift}
-  puts playing_deck.count.to_s + "cards"
+  2.times do 
+    player_cards << playing_deck.shift
+    computer_cards << playing_deck.shift
+  end
 end
 
 def get_card(playing_deck, hand)
@@ -73,14 +74,14 @@ def count_cards(cards)
   if number_aces == 0
     return sum
   else
-    return check_punctuation(sum, number_aces)
+    return sum_including_aces(sum, number_aces)
   end
 end
 
-def check_punctuation(sum, aces)
-  aces_values = [0,11,12,13,14] # added 0 for clarity. Never used.
-  total_sum_1 = sum + (aces * 1)
-  total_sum_11 = sum + (aces_values[aces])
+def sum_including_aces(sum, aces)
+  aces_values = [11,12,13,14] # added 0 for clarity. Never used.
+  total_sum_1 = sum + aces
+  total_sum_11 = sum + (aces_values[aces - 0])
 
   if total_sum_11 <= 21
     return total_sum_11
@@ -121,7 +122,7 @@ def print_card(card)
   puts "---------------"
 end
 
-def print_full_hand(player_cards, computer_cards, name, card_hidden = false)
+def print_full_hands(player_cards, computer_cards, name, card_hidden = false)
   system('clear')
   hidden_card = [" "," "," "]
   puts "#{name} cards"
@@ -145,13 +146,13 @@ def print_hands_sum(player_cards, computer_cards, computer_hand_hidden = true)
 end
 #### Program execution starts
 name = ask_for_name
-name = "Smith" unless !name.empty?
-number_of_decks.times {playing_deck = playing_deck + initialize_deck}
+name = "Smith" if name.empty?
+NUMBER_OF_DECKS.times {playing_deck = playing_deck + initialize_deck(SUITS)}
 loop do # main loop
   system('clear')
   reset_player_and_computer_decks(player_cards, computer_cards)
   give_starting_cards(player_cards, computer_cards, playing_deck)
-  print_full_hand(player_cards, computer_cards, name, true) # last parameter true = computer card hidden
+  print_full_hands(player_cards, computer_cards, name, true) # last parameter true = computer card hidden
   game_ends = false
 
   begin # player's turn
@@ -164,14 +165,14 @@ loop do # main loop
     begin # loop until Hit or Stay is selected
       puts "hit or stay(H/S)?"
       choice = gets.chomp.upcase
-    end until choice == "H" || choice == "S"
+    end until ['H', 'S'].include?(choice)
 
     get_card(playing_deck,player_cards) unless choice == "S"
-    print_full_hand(player_cards, computer_cards, name, true) # last parameter true = computer card hidden
+    print_full_hands(player_cards, computer_cards, name, true) # last parameter true = computer card hidden
   end while choice != "S"
 
   while !game_ends do # computer's turn unless player has win or lose before
-    print_full_hand(player_cards, computer_cards, name)  
+    print_full_hands(player_cards, computer_cards, name)  
     print_hands_sum(player_cards, computer_cards, false) # last parameter false = dont hide computer's hand sum
 
     if check_win_lose(count_cards(computer_cards), "computer")
